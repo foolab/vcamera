@@ -1,0 +1,70 @@
+Virtual V4L2 camera module.
+
+This module will create a virtual v4l2 camera which will allow
+feeding in frames from user space once streaming has started.
+
+The device exposed for writing frames is /dev/vcamera and it
+will be exposed once streaming has started.
+
+TODO: A lot.
+
+To manipulate the device:
+
+  int fd = open("/dev/vcamera", O_RDWR);
+  if (fd == -1) {
+    perror("open");
+    return 1;
+  }
+
+  struct v4l2_format fmt;
+  struct v4l2_requestbuffers bufs;
+
+  bzero(&fmt, sizeof(fmt));
+  bzero(&bufs, sizeof(bufs));
+
+  if (ioctl(fd, VIDIOC_G_FMT, &fmt) == -1) {
+    perror("ioctl");
+    return 1;
+  }
+
+  if (ioctl(fd, VIDIOC_REQBUFS, &bufs) == -1) {
+    perror("ioctl");
+    return 1;
+  }
+
+  printf("Kernel supplied:\n"
+	 "Width: %i\n"
+	 "Height: %i\n"
+	 "Format: %i\n"
+	 "Size: %i\n"
+	 "Buffers: %i\n",
+	 fmt.fmt.pix.width, fmt.fmt.pix.height, fmt.fmt.pix.pixelformat,
+	 fmt.fmt.pix.sizeimage, bufs.count);
+
+  char buf[fmt.fmt.pix.sizeimage];
+  int fd2 = open("/path/to/data", O_RDONLY);
+  if (fd2 == -1) {
+    perror("open");
+    return 1;
+  }
+
+  if (read(fd2, buf, fmt.fmt.pix.sizeimage) != fmt.fmt.pix.sizeimage) {
+    perror("read");
+    return 1;
+  }
+
+  while (1) {
+    if (write(fd, buf, fmt.fmt.pix.sizeimage) != fmt.fmt.pix.sizeimage) {
+      if (errno == EAGAIN) {
+	continue;
+      }
+
+      perror("write");
+      return 1;
+    }
+    break;
+  }
+
+  close(fd2);
+  close(fd);
+  return 0;

@@ -334,7 +334,7 @@ static struct file_operations vcamera_char_fops = {
   .release = vcamera_char_release,
 };
 
-struct miscdevice vcamera_char_dev = {
+static struct miscdevice vcamera_char_dev = {
   .minor = MISC_DYNAMIC_MINOR,
   .name = MODULE_NAME,
   .fops = &vcamera_char_fops,

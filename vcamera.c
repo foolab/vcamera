@@ -64,8 +64,7 @@ static struct vcamera_data vcamera_data = {
   .reg = 0,
 };
 
-static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
-				struct v4l2_format *fmt)
+static void vcamera_fill_fmt(struct v4l2_format *fmt)
 {
   fmt->fmt.pix.width        = vcamera_data.width;
   fmt->fmt.pix.height       = vcamera_data.height;
@@ -73,6 +72,12 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
   fmt->fmt.pix.pixelformat  = vcamera_data.fmt;
   fmt->fmt.pix.bytesperline = fmt->fmt.pix.width * 2;
   fmt->fmt.pix.sizeimage = fmt->fmt.pix.width * vcamera_data.height * 2;
+}
+
+static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
+				struct v4l2_format *fmt)
+{
+  vcamera_fill_fmt(fmt);
 
   return 0;
 }
@@ -301,7 +306,7 @@ static long vcamera_char_ioctl(struct file *file, unsigned int cmd, unsigned lon
 
     break;
   case VIDIOC_G_FMT:
-    vidioc_g_fmt_vid_cap(0, 0, &fmt);
+    vcamera_fill_fmt(&fmt);
     if (copy_to_user((struct v4l2_format *)arg, &fmt, sizeof(struct v4l2_format))) {
       ret = -EFAULT;
       goto out;

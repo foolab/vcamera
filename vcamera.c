@@ -298,7 +298,7 @@ static long vcamera_char_ioctl(struct file *file, unsigned int cmd, unsigned lon
   switch (cmd) {
   case VIDIOC_REQBUFS:
     bufs.count = vcamera_data.n_buffers;
-    if (copy_to_user((struct v4l2_requestbuffers *)arg,
+    if (copy_to_user((struct v4l2_requestbuffers __user *)arg,
 		     &bufs, sizeof(struct v4l2_requestbuffers))) {
       ret = -EFAULT;
       goto out;
@@ -307,7 +307,7 @@ static long vcamera_char_ioctl(struct file *file, unsigned int cmd, unsigned lon
     break;
   case VIDIOC_G_FMT:
     vcamera_fill_fmt(&fmt);
-    if (copy_to_user((struct v4l2_format *)arg, &fmt, sizeof(struct v4l2_format))) {
+    if (copy_to_user((struct v4l2_format __user *)arg, &fmt, sizeof(struct v4l2_format))) {
       ret = -EFAULT;
       goto out;
     }
